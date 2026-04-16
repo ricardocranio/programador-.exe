@@ -16,7 +16,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <LoginGate>
-        <BrowserRouter>
+        <HashRouter>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/admin" element={<AdminPanel />} />
