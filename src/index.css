@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 7%;
+    --foreground: 210 20% 92%;
+
+    --card: 220 18% 10%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 220 18% 12%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 160 84% 44%;
+    --primary-foreground: 220 20% 7%;
+
+    --secondary: 220 16% 16%;
+    --secondary-foreground: 210 20% 85%;
+
+    --muted: 220 14% 14%;
+    --muted-foreground: 215 12% 50%;
+
+    --accent: 36 95% 55%;
+    --accent-foreground: 220 20% 7%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 160 84% 44%;
+
+    --radius: 0.75rem;
+
+    --online: 160 84% 44%;
+    --offline: 0 72% 55%;
+    --warning: 36 95% 55%;
+
+    --sidebar-background: 220 18% 10%;
+    --sidebar-foreground: 210 20% 92%;
+    --sidebar-primary: 160 84% 44%;
+    --sidebar-primary-foreground: 220 20% 7%;
+    --sidebar-accent: 220 16% 16%;
+    --sidebar-accent-foreground: 210 20% 85%;
+    --sidebar-border: 220 14% 18%;
+    --sidebar-ring: 160 84% 44%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* PDF Light mode override for export */
+.pdf-light-mode,
+.pdf-light-mode * {
+  color: #1a1a2e !important;
+}
+.pdf-light-mode .text-muted-foreground,
+.pdf-light-mode .text-muted-foreground\/40 {
+  color: #6b7280 !important;
+}
+.pdf-light-mode .text-accent {
+  color: #d97706 !important;
+}
+.pdf-light-mode .text-primary {
+  color: #059669 !important;
+}
+.pdf-light-mode .bg-secondary\/30,
+.pdf-light-mode .bg-accent\/5,
+.pdf-light-mode .bg-primary\/5 {
+  background-color: #f3f4f6 !important;
+}
+.pdf-light-mode .border-border,
+.pdf-light-mode .border-border\/50,
+.pdf-light-mode .border-border\/30 {
+  border-color: #e5e7eb !important;
+}
+.pdf-light-mode .bg-secondary\/95,
+.pdf-light-mode .bg-accent\/5,
+.pdf-light-mode .bg-primary\/5 {
+  background-color: #f9fafb !important;
+}
+.pdf-light-mode .bg-secondary\/30 {
+  background-color: #f3f4f6 !important;
+}
