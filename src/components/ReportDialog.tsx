@@ -509,8 +509,8 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
       const vals = hourMap.get(h) || [];
       const avg = vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
       return { time: `${String(h).padStart(2, "0")}:00`, listeners: avg };
-    });
-  }, [compareStationId, compareSnapshots, horarioFilter, selectedDate]);
+    }).filter((_, h) => h >= startHour && h <= endHour);
+  }, [compareStationId, compareSnapshots, horarioFilter, selectedDate, startHour, endHour]);
 
   const todayStats = useMemo(() => {
     if (!status || allSnapshots.length === 0) {
