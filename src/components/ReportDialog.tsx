@@ -1077,6 +1077,11 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
                   <p className="text-[10px] sm:text-xs font-semibold text-foreground uppercase tracking-wide">
                     Comparativo — Emissoras
                     {simulatorEnabled && <span className="text-accent text-[10px] font-normal ml-2">Fi {simulatorFactor}</span>}
+                    {blendView === "horario" && (startHour !== 0 || endHour !== 23) && (
+                      <span className="ml-2 text-accent font-mono text-[10px] font-normal normal-case">
+                        • Faixa: {String(startHour).padStart(2, "0")}:00–{String(endHour).padStart(2, "0")}:59
+                      </span>
+                    )}
                   </p>
                   <div className="flex items-center gap-1.5 flex-wrap" data-export-hide="true">
                     <Button
