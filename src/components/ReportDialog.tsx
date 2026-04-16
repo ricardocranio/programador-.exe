@@ -84,6 +84,8 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [compareStationId, setCompareStationId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [startHour, setStartHour] = useState(0);
+  const [endHour, setEndHour] = useState(23);
   const realtimeChartRef = useRef<HTMLDivElement>(null);
   const blendChartRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -439,8 +441,8 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
       const vals = hourMap.get(h) || [];
       const avg = vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
       return { time: `${String(h).padStart(2, "0")}:00`, listeners: avg };
-    });
-  }, [viewMode, horarioFilter, selectedDate, allSnapshots, hourlyData]);
+    }).filter((_, h) => h >= startHour && h <= endHour);
+  }, [viewMode, horarioFilter, selectedDate, allSnapshots, hourlyData, startHour, endHour]);
 
   // Compare station: fetch snapshots
   const [compareSnapshots, setCompareSnapshots] = useState<SnapshotRow[]>([]);
@@ -507,8 +509,8 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
       const vals = hourMap.get(h) || [];
       const avg = vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
       return { time: `${String(h).padStart(2, "0")}:00`, listeners: avg };
-    });
-  }, [compareStationId, compareSnapshots, horarioFilter, selectedDate]);
+    }).filter((_, h) => h >= startHour && h <= endHour);
+  }, [compareStationId, compareSnapshots, horarioFilter, selectedDate, startHour, endHour]);
 
   const todayStats = useMemo(() => {
     if (!status || allSnapshots.length === 0) {
@@ -641,6 +643,25 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
     }));
   }, [viewMode, filteredHourlyData, compareHourlyData, compareStationId, factor]);
 
+  // Apply factor to blend data
+  const displayBlendData = useMemo(() => {
+    let data = blendData;
+    if (factor !== 1) {
+      data = data.map(row => {
+        const newRow: Record<string, any> = { time: row.time };
+        stations.forEach(st => {
+          newRow[st.id] = row[st.id] != null ? Math.round(row[st.id] * factor) : null;
+        });
+        return newRow;
+      });
+    }
+    // Filter by hour range in horario blend view
+    if (blendView === "horario") {
+      data = data.filter((_, i) => i >= startHour && i <= endHour);
+    }
+    return data;
+  }, [blendData, factor, blendView, startHour, endHour]);
+
   if (!status) return null;
   const { station, listeners } = status;
 
@@ -648,22 +669,51 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
   const chartData = factor !== 1
     ? rawChartData.map(d => ({ ...d, listeners: Math.round(d.listeners * factor) }))
     : rawChartData;
-
-  // Apply factor to blend data
-  const displayBlendData = factor !== 1
-    ? blendData.map(row => {
-        const newRow: Record<string, any> = { time: row.time };
-        stations.forEach(st => {
-          newRow[st.id] = row[st.id] != null ? Math.round(row[st.id] * factor) : null;
-        });
-        return newRow;
-      })
-    : blendData;
   const dayName = DAY_SHORT[getBrasiliaDay()];
 
   // Streaming & Simulado averages for single-station views
   const streamingAvg = chartData.length > 0 ? calcAvg(chartData.filter(d => d.listeners > 0).map(d => d.listeners)) : 0;
   const simuladoAvg = simulatorEnabled && factor !== 1 ? streamingAvg : 0;
+
+  // Hour range options
+  const hourOptions = Array.from({ length: 24 }, (_, h) => ({
+    value: h,
+    label: `${String(h).padStart(2, "0")}:00`,
+  }));
+  const endHourOptions = Array.from({ length: 24 }, (_, h) => ({
+    value: h,
+    label: `${String(h).padStart(2, "0")}:59`,
+  }));
+
+  // Time range filter component
+  const TimeRangeFilter = () => (
+    <div className="flex items-center gap-1.5 flex-wrap" data-export-hide="true">
+      <Clock className="h-3 w-3 text-accent shrink-0" />
+      <span className="text-[10px] sm:text-[11px] text-accent font-semibold uppercase tracking-wide whitespace-nowrap">Faixa Horária</span>
+      <span className="text-[10px] text-muted-foreground">Inicial:</span>
+      <Select value={String(startHour)} onValueChange={(v) => { const h = Number(v); setStartHour(h); if (h > endHour) setEndHour(h); }}>
+        <SelectTrigger className="h-6 w-[72px] text-[10px] border-border text-foreground font-mono">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="bg-card border-border max-h-48">
+          {hourOptions.map(o => (
+            <SelectItem key={o.value} value={String(o.value)} className="text-[11px] font-mono">{o.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <span className="text-[10px] text-muted-foreground">Final:</span>
+      <Select value={String(endHour)} onValueChange={(v) => { const h = Number(v); setEndHour(h); if (h < startHour) setStartHour(h); }}>
+        <SelectTrigger className="h-6 w-[72px] text-[10px] border-border text-foreground font-mono">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="bg-card border-border max-h-48">
+          {endHourOptions.map(o => (
+            <SelectItem key={o.value} value={String(o.value)} className="text-[11px] font-mono">{o.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
 
   // PDF export buttons component
   const PdfExportButtons = ({ className = "" }: { className?: string }) => (
@@ -968,6 +1018,9 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
                 </div>
               )}
 
+              {/* Time range filter for horário view */}
+              {viewMode === "horario" && <TimeRangeFilter />}
+
               <div className="overflow-x-auto">
                 <div className="min-w-[320px]">
                   <ResponsiveContainer width="100%" height={isFullscreen ? 300 : 180}>
@@ -1110,7 +1163,9 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
                   )}
                 </div>
 
-                {/* Station legend with checkboxes */}
+                {/* Time range filter for blend */}
+                {blendView === "horario" && <TimeRangeFilter />}
+
                 <div data-export-hide="true" className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1 px-1">
                   {stations.map((st, i) => (
                     <label key={st.id} className="flex items-center gap-1.5 cursor-pointer">
@@ -1186,7 +1241,7 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
                       <thead>
                         <tr className="border-b border-border">
                           <th className="text-left text-muted-foreground font-medium py-1.5 pr-1 sm:pr-2 sticky left-0 z-10 bg-secondary/95 backdrop-blur-sm min-w-[100px] sm:min-w-[140px]">Emissora</th>
-                          {Array.from({ length: 24 }, (_, h) => (
+                          {Array.from({ length: 24 }, (_, h) => h).filter(h => h >= startHour && h <= endHour).map(h => (
                             <th key={h} className="text-center text-muted-foreground font-medium py-1.5 px-0.5 sm:px-1 whitespace-nowrap" style={{ minWidth: '30px' }}>
                               {`${String(h).padStart(2, "0")}h`}
                             </th>
@@ -1198,7 +1253,7 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
                         {blendStations.map((st, idx) => {
                           const globalIdx = stations.findIndex(s => s.id === st.id);
                           const color = STATION_COLORS[globalIdx % STATION_COLORS.length];
-                          const stationVals = Array.from({ length: 24 }, (_, h) => {
+                          const stationVals = Array.from({ length: 24 }, (_, h) => h).filter(h => h >= startHour && h <= endHour).map(h => {
                             const row = displayBlendData.find(r => r.time === `${String(h).padStart(2, "0")}:00`);
                             return row?.[st.id];
                           }).filter((v): v is number => v != null && v > 0);
@@ -1217,7 +1272,7 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
                                   <span className="text-foreground font-medium text-[8px] sm:text-[10px]">{st.name}</span>
                                 </div>
                               </td>
-                              {Array.from({ length: 24 }, (_, h) => {
+                              {Array.from({ length: 24 }, (_, h) => h).filter(h => h >= startHour && h <= endHour).map(h => {
                                 const row = displayBlendData.find(r => r.time === `${String(h).padStart(2, "0")}:00`);
                                 const val = row?.[st.id];
                                 return (
@@ -1244,7 +1299,7 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
                               <span className="text-primary font-bold text-[8px] sm:text-[10px]">Média {simulatorEnabled ? 'Fi' : 'Geral'} FM</span>
                             </div>
                           </td>
-                          {Array.from({ length: 24 }, (_, h) => {
+                          {Array.from({ length: 24 }, (_, h) => h).filter(h => h >= startHour && h <= endHour).map(h => {
                             const row = displayBlendData.find(r => r.time === `${String(h).padStart(2, "0")}:00`);
                             const vals = blendStations.map(st => row?.[st.id]).filter((v): v is number => v != null && v > 0);
                             const avg = vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
@@ -1258,7 +1313,7 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
                           })}
                           <td className="text-center py-1.5 sm:py-2 px-0.5 sm:px-1 font-mono tabular-nums font-bold border-l border-accent/30">
                             {(() => {
-                              const allVals = Array.from({ length: 24 }, (_, h) => {
+                              const allVals = Array.from({ length: 24 }, (_, h) => h).filter(h => h >= startHour && h <= endHour).map(h => {
                                 const row = displayBlendData.find(r => r.time === `${String(h).padStart(2, "0")}:00`);
                                 const vals = blendStations.map(st => row?.[st.id]).filter((v): v is number => v != null && v > 0);
                                 return vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
