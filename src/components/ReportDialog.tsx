@@ -1272,7 +1272,7 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
                                   <span className="text-foreground font-medium text-[8px] sm:text-[10px]">{st.name}</span>
                                 </div>
                               </td>
-                              {Array.from({ length: 24 }, (_, h) => {
+                              {Array.from({ length: 24 }, (_, h) => h).filter(h => h >= startHour && h <= endHour).map(h => {
                                 const row = displayBlendData.find(r => r.time === `${String(h).padStart(2, "0")}:00`);
                                 const val = row?.[st.id];
                                 return (
@@ -1299,7 +1299,7 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
                               <span className="text-primary font-bold text-[8px] sm:text-[10px]">Média {simulatorEnabled ? 'Fi' : 'Geral'} FM</span>
                             </div>
                           </td>
-                          {Array.from({ length: 24 }, (_, h) => {
+                          {Array.from({ length: 24 }, (_, h) => h).filter(h => h >= startHour && h <= endHour).map(h => {
                             const row = displayBlendData.find(r => r.time === `${String(h).padStart(2, "0")}:00`);
                             const vals = blendStations.map(st => row?.[st.id]).filter((v): v is number => v != null && v > 0);
                             const avg = vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
