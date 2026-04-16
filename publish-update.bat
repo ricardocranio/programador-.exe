@@ -36,6 +36,16 @@ if %errorlevel% neq 0 (
 )
 
 echo.
+echo Corrigindo electron-builder (movendo para devDependencies)...
+call npm uninstall electron-builder
+call npm install --save-dev electron-builder@^25.1.8
+if %errorlevel% neq 0 (
+    echo ERRO: Falha ao mover electron-builder para devDependencies!
+    pause
+    exit /b 1
+)
+
+echo.
 echo Gerando build do projeto...
 call npx vite build
 if %errorlevel% neq 0 (
