@@ -441,8 +441,8 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
       const vals = hourMap.get(h) || [];
       const avg = vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
       return { time: `${String(h).padStart(2, "0")}:00`, listeners: avg };
-    });
-  }, [viewMode, horarioFilter, selectedDate, allSnapshots, hourlyData]);
+    }).filter((_, h) => h >= startHour && h <= endHour);
+  }, [viewMode, horarioFilter, selectedDate, allSnapshots, hourlyData, startHour, endHour]);
 
   // Compare station: fetch snapshots
   const [compareSnapshots, setCompareSnapshots] = useState<SnapshotRow[]>([]);
