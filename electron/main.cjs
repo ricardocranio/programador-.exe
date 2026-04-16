@@ -1,7 +1,12 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path = require('path');
+const { autoUpdater } = require('electron-updater');
 
 let mainWindow = null;
+
+// Configurações do auto-updater
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -54,7 +59,98 @@ ipcMain.on('window:maximize', () => {
 });
 ipcMain.on('window:close', () => mainWindow?.close());
 
-app.whenReady().then(createWindow);
+// ============================================
+// AUTO-UPDATER - GitHub Releases
+// ============================================
+
+function setupAutoUpdater() {
+  // Verifica updates 3 segundos após abrir
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch((err) => {
+      console.error('Erro ao verificar atualizações:', err);
+    });
+  }, 3000);
+
+  // Verifica novamente a cada 1 hora enquanto o app está aberto
+  setInterval(() => {
+    autoUpdater.checkForUpdates().catch((err) => {
+      console.error('Erro ao verificar atualizações:', err);
+    });
+  }, 60 * 60 * 1000);
+}
+
+autoUpdater.on('checking-for-update', () => {
+  console.log('Verificando atualizações...');
+});
+
+autoUpdater.on('update-available', (info) => {
+  console.log('Atualização disponível:', info.version);
+  if (mainWindow) {
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Atualização disponível',
+      message: `Nova versão ${info.version} disponível!`,
+      detail: 'A atualização está sendo baixada em segundo plano. Você será notificado quando estiver pronta para instalar.',
+      buttons: ['OK'],
+    });
+  }
+});
+
+autoUpdater.on('update-not-available', () => {
+  console.log('Nenhuma atualização disponível.');
+});
+
+autoUpdater.on('error', (err) => {
+  console.error('Erro no auto-updater:', err);
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+  const log = `Baixando: ${Math.round(progressObj.percent)}% (${Math.round(progressObj.transferred / 1024 / 1024)}MB / ${Math.round(progressObj.total / 1024 / 1024)}MB)`;
+  console.log(log);
+  if (mainWindow) {
+    mainWindow.setProgressBar(progressObj.percent / 100);
+  }
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+  console.log('Atualização baixada:', info.version);
+  if (mainWindow) {
+    mainWindow.setProgressBar(-1);
+    dialog
+      .showMessageBox(mainWindow, {
+        type: 'info',
+        title: 'Atualização pronta',
+        message: `A versão ${info.version} foi baixada com sucesso!`,
+        detail: 'Reinicie o aplicativo agora para aplicar a atualização.',
+        buttons: ['Reiniciar agora', 'Mais tarde'],
+        defaultId: 0,
+        cancelId: 1,
+      })
+      .then((result) => {
+        if (result.response === 0) {
+          autoUpdater.quitAndInstall();
+        }
+      });
+  }
+});
+
+// IPC para checagem manual de updates (opcional, pode ser usado no futuro)
+ipcMain.handle('updater:check', async () => {
+  try {
+    const result = await autoUpdater.checkForUpdates();
+    return { success: true, version: result?.updateInfo?.version };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+app.whenReady().then(() => {
+  createWindow();
+  // Só ativa auto-updater em produção (app empacotado)
+  if (app.isPackaged) {
+    setupAutoUpdater();
+  }
+});
 
 app.on('window-all-closed', () => {
   app.quit();

@@ -22,8 +22,8 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo Empacotando como .exe...
-call npx @electron/packager . "MonitoramentoAudiencia" --platform=win32 --arch=x64 --out=electron-release --overwrite --ignore="node_modules" --ignore="^/src" --ignore="^/public" --ignore="^/electron-release"
+echo Empacotando como instalador .exe (NSIS)...
+call npx electron-builder --win --x64 --config electron-builder.yml
 if %errorlevel% neq 0 (
     echo ERRO: Falha ao empacotar!
     pause
@@ -32,7 +32,11 @@ if %errorlevel% neq 0 (
 
 echo.
 echo ========================================
-echo  SUCESSO! O .exe esta em:
-echo  electron-release\MonitoramentoAudiencia-win32-x64\
+echo  SUCESSO! O instalador esta em:
+echo  electron-release\MonitoramentoAudiencia-Setup-X.X.X.exe
+echo ========================================
+echo.
+echo Para PUBLICAR a atualizacao no GitHub Releases,
+echo use o arquivo: publish-update.bat
 echo ========================================
 pause
