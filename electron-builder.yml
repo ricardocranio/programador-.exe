@@ -1,0 +1,42 @@
+appId: com.ricardo.monitoramentoaudiencia
+productName: MonitoramentoAudiencia
+copyright: Copyright © 2025 Ricardo
+
+directories:
+  output: electron-release
+  buildResources: build
+
+files:
+  - dist/**/*
+  - electron/**/*
+  - package.json
+  - "!node_modules/**/*"
+
+extraMetadata:
+  main: electron/main.cjs
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: public/favicon.ico
+  artifactName: MonitoramentoAudiencia-Setup-${version}.${ext}
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDir: true
+  allowElevation: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Monitoramento de Audiência
+  installerIcon: public/favicon.ico
+  uninstallerIcon: public/favicon.ico
+  uninstallDisplayName: Monitoramento de Audiência
+  deleteAppDataOnUninstall: false
+
+publish:
+  - provider: github
+    owner: ricardocranio
+    repo: programador-.exe
+    releaseType: release
