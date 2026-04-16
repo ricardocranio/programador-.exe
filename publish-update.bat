@@ -23,6 +23,19 @@ if "%GH_TOKEN%"=="" (
 echo Token detectado. Continuando...
 echo.
 
+echo Criando pasta npm (caso nao exista)...
+if not exist "%APPDATA%\npm" mkdir "%APPDATA%\npm"
+
+echo.
+echo Instalando dependencias (pode demorar alguns minutos)...
+call npm install
+if %errorlevel% neq 0 (
+    echo ERRO: Falha ao instalar dependencias!
+    pause
+    exit /b 1
+)
+
+echo.
 echo Gerando build do projeto...
 call npx vite build
 if %errorlevel% neq 0 (
