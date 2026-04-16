@@ -1253,7 +1253,7 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
                         {blendStations.map((st, idx) => {
                           const globalIdx = stations.findIndex(s => s.id === st.id);
                           const color = STATION_COLORS[globalIdx % STATION_COLORS.length];
-                          const stationVals = Array.from({ length: 24 }, (_, h) => {
+                          const stationVals = Array.from({ length: 24 }, (_, h) => h).filter(h => h >= startHour && h <= endHour).map(h => {
                             const row = displayBlendData.find(r => r.time === `${String(h).padStart(2, "0")}:00`);
                             return row?.[st.id];
                           }).filter((v): v is number => v != null && v > 0);
