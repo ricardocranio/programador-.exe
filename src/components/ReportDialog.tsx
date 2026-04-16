@@ -675,6 +675,46 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
   const streamingAvg = chartData.length > 0 ? calcAvg(chartData.filter(d => d.listeners > 0).map(d => d.listeners)) : 0;
   const simuladoAvg = simulatorEnabled && factor !== 1 ? streamingAvg : 0;
 
+  // Hour range options
+  const hourOptions = Array.from({ length: 24 }, (_, h) => ({
+    value: h,
+    label: `${String(h).padStart(2, "0")}:00`,
+  }));
+  const endHourOptions = Array.from({ length: 24 }, (_, h) => ({
+    value: h,
+    label: `${String(h).padStart(2, "0")}:59`,
+  }));
+
+  // Time range filter component
+  const TimeRangeFilter = () => (
+    <div className="flex items-center gap-1.5 flex-wrap" data-export-hide="true">
+      <Clock className="h-3 w-3 text-accent shrink-0" />
+      <span className="text-[10px] sm:text-[11px] text-accent font-semibold uppercase tracking-wide whitespace-nowrap">Faixa Horária</span>
+      <span className="text-[10px] text-muted-foreground">Inicial:</span>
+      <Select value={String(startHour)} onValueChange={(v) => { const h = Number(v); setStartHour(h); if (h > endHour) setEndHour(h); }}>
+        <SelectTrigger className="h-6 w-[72px] text-[10px] border-border text-foreground font-mono">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="bg-card border-border max-h-48">
+          {hourOptions.map(o => (
+            <SelectItem key={o.value} value={String(o.value)} className="text-[11px] font-mono">{o.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <span className="text-[10px] text-muted-foreground">Final:</span>
+      <Select value={String(endHour)} onValueChange={(v) => { const h = Number(v); setEndHour(h); if (h < startHour) setStartHour(h); }}>
+        <SelectTrigger className="h-6 w-[72px] text-[10px] border-border text-foreground font-mono">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="bg-card border-border max-h-48">
+          {endHourOptions.map(o => (
+            <SelectItem key={o.value} value={String(o.value)} className="text-[11px] font-mono">{o.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
   // PDF export buttons component
   const PdfExportButtons = ({ className = "" }: { className?: string }) => (
     <div data-export-hide="true" className={cn("flex items-center gap-1.5", className)}>
