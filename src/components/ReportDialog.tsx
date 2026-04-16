@@ -652,15 +652,23 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
     : rawChartData;
 
   // Apply factor to blend data
-  const displayBlendData = factor !== 1
-    ? blendData.map(row => {
+  const displayBlendData = useMemo(() => {
+    let data = blendData;
+    if (factor !== 1) {
+      data = data.map(row => {
         const newRow: Record<string, any> = { time: row.time };
         stations.forEach(st => {
           newRow[st.id] = row[st.id] != null ? Math.round(row[st.id] * factor) : null;
         });
         return newRow;
-      })
-    : blendData;
+      });
+    }
+    // Filter by hour range in horario blend view
+    if (blendView === "horario") {
+      data = data.filter((_, i) => i >= startHour && i <= endHour);
+    }
+    return data;
+  }, [blendData, factor, blendView, startHour, endHour]);
   const dayName = DAY_SHORT[getBrasiliaDay()];
 
   // Streaming & Simulado averages for single-station views
