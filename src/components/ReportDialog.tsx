@@ -1018,6 +1018,9 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
                 </div>
               )}
 
+              {/* Time range filter for horário view */}
+              {viewMode === "horario" && <TimeRangeFilter />}
+
               <div className="overflow-x-auto">
                 <div className="min-w-[320px]">
                   <ResponsiveContainer width="100%" height={isFullscreen ? 300 : 180}>
@@ -1160,7 +1163,9 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
                   )}
                 </div>
 
-                {/* Station legend with checkboxes */}
+                {/* Time range filter for blend */}
+                {blendView === "horario" && <TimeRangeFilter />}
+
                 <div data-export-hide="true" className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1 px-1">
                   {stations.map((st, i) => (
                     <label key={st.id} className="flex items-center gap-1.5 cursor-pointer">
