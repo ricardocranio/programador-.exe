@@ -946,6 +946,11 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
                     : viewMode === "dia"
                     ? "Audiência por Dia da Semana"
                     : "Audiência Média por Mês"}
+                  {viewMode === "horario" && (startHour !== 0 || endHour !== 23) && (
+                    <span className="ml-2 text-accent font-mono normal-case">
+                      • Faixa: {String(startHour).padStart(2, "0")}:00–{String(endHour).padStart(2, "0")}:59
+                    </span>
+                  )}
                 </p>
                 <PdfExportButtons />
               </div>
