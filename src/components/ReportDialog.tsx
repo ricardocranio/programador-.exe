@@ -1241,10 +1241,15 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
               {/* Hourly numeric table */}
               {blendView === "horario" && displayBlendData.length > 0 && (
                 <div className="rounded-lg bg-secondary/30 p-2 sm:p-4">
-                  <p className="text-xs font-semibold text-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5 px-2 sm:px-0">
+                  <p className="text-xs font-semibold text-foreground uppercase tracking-wide mb-3 flex items-center gap-1.5 px-2 sm:px-0 flex-wrap">
                     <Clock className="h-3.5 w-3.5 text-primary" />
                     Audiência por Horário — {format(blendDate, "dd/MM/yyyy")}
                     {simulatorEnabled && <span className="text-accent text-[10px] font-normal ml-1">(Fi {simulatorFactor})</span>}
+                    {(startHour !== 0 || endHour !== 23) && (
+                      <span className="text-accent text-[10px] font-normal normal-case font-mono">
+                        • Faixa: {String(startHour).padStart(2, "0")}:00–{String(endHour).padStart(2, "0")}:59
+                      </span>
+                    )}
                   </p>
                   <div className="overflow-x-auto -mx-2 sm:mx-0 scrollbar-thin">
                     <table className="w-full text-[9px] sm:text-[10px] border-collapse min-w-[800px]">
