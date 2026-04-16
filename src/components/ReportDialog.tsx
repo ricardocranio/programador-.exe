@@ -643,14 +643,6 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
     }));
   }, [viewMode, filteredHourlyData, compareHourlyData, compareStationId, factor]);
 
-  if (!status) return null;
-  const { station, listeners } = status;
-
-  const rawChartData = viewMode === "horario" ? filteredHourlyData : viewMode === "dia" ? dailyData : monthlyData;
-  const chartData = factor !== 1
-    ? rawChartData.map(d => ({ ...d, listeners: Math.round(d.listeners * factor) }))
-    : rawChartData;
-
   // Apply factor to blend data
   const displayBlendData = useMemo(() => {
     let data = blendData;
@@ -669,6 +661,14 @@ export function ReportDialog({ status, open, onOpenChange, visibleStations, simu
     }
     return data;
   }, [blendData, factor, blendView, startHour, endHour]);
+
+  if (!status) return null;
+  const { station, listeners } = status;
+
+  const rawChartData = viewMode === "horario" ? filteredHourlyData : viewMode === "dia" ? dailyData : monthlyData;
+  const chartData = factor !== 1
+    ? rawChartData.map(d => ({ ...d, listeners: Math.round(d.listeners * factor) }))
+    : rawChartData;
   const dayName = DAY_SHORT[getBrasiliaDay()];
 
   // Streaming & Simulado averages for single-station views
